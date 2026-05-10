@@ -2,6 +2,9 @@
 
 Este repositório contem as configurações do meu sistema Arch Linux usando Hyprland. Aqui estão os principais componentes e onde cada configuração fica.
 
+[![Sistema](/img/2026-05-10-000136_hyprshot.png)](/img/2026-05-10-000136_hyprshot.png)
+
+
 ## Estrutura
 
 - `hypr/`: configuração do Hyprland (monitor, apps, binds, etc.)
