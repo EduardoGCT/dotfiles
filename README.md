@@ -17,4 +17,4 @@ Este repositório contem as configurações do meu sistema Arch Linux usando Hyp
 
 ## Uso
 
-Copie as pastas para `~/.config` ou use links simbolicos conforme sua preferencia.
+Copie as pastas para `~/.config` ou use links simbolicos conforme sua preferencia..
