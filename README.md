@@ -23,3 +23,5 @@ Este repositório contem as configurações do meu sistema Arch Linux usando Hyp
 Copie as pastas para `~/.config` ou use links simbolicos conforme sua preferencia..
 
 É necessário possuir todos os pacotes e ferramentas utilizados, breve citarei todos aqui...
+
+Incluido em hypr/hyprland.lua a configuração traduzida para a nova linguagem Lua
