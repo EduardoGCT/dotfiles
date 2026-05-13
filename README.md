@@ -24,4 +24,27 @@ Copie as pastas para `~/.config` ou use links simbolicos conforme sua preferenci
 
 É necessário possuir todos os pacotes e ferramentas utilizados, breve citarei todos aqui...
 
+## Instalacao automatica
+
+Script de bootstrap para instalar pacotes, copiar configs e fazer checagens de boot.
+
+Exemplo com curl:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/USERNAME/dotfiles/main/install.sh | bash -s -- --repo https://github.com/USERNAME/dotfiles.git
+```
+
+Opcoes:
+
+- `--repo <git_url>`: URL do repositorio para clonar (obrigatorio se nao rodar dentro do repo)
+- `--branch <branch>`: branch a usar (padrao: main)
+- `--dry-run`: apenas mostra os comandos
+- `--no-aur`: ignora pacotes AUR
+
+Observacoes:
+
+- O script cria backup em `~/.config-backups/<timestamp>` antes de sobrescrever configs.
+- O script tenta detectar microcode e avisa sobre NVIDIA.
+- Se quiser rodar localmente: `bash install.sh`.
+
 Incluido em hypr/hyprland.lua a configuração traduzida para a nova linguagem Lua
