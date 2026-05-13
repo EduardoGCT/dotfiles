@@ -1,6 +1,6 @@
 # Dotfiles - Arch Linux + Hyprland
 
-Este repositório contem as configurações do meu sistema Arch Linux usando Hyprland. Aqui estão os principais componentes e onde cada configuração fica.
+Este repositório contém as configurações do meu sistema Arch Linux usando Hyprland. Aqui estão os principais componentes e onde cada configuração fica.
 
 [![Sistema](/img/2026-05-10-000136_hyprshot.png)](/img/2026-05-10-000136_hyprshot.png)
 
@@ -24,7 +24,7 @@ Copie as pastas para `~/.config` ou use links simbolicos conforme sua preferenci
 
 É necessário possuir todos os pacotes e ferramentas utilizados, breve citarei todos aqui...
 
-## Instalacao automatica
+## Instalação automática
 
 Script de bootstrap para instalar pacotes, copiar configs e fazer checagens de boot.
 
@@ -34,9 +34,9 @@ Exemplo com curl:
 curl -fsSL https://raw.githubusercontent.com/USERNAME/dotfiles/main/install.sh | bash -s -- --repo https://github.com/USERNAME/dotfiles.git
 ```
 
-Opcoes:
+Opções:
 
-- `--repo <git_url>`: URL do repositorio para clonar (obrigatorio se nao rodar dentro do repo)
+- `--repo <git_url>`: URL do repositório para clonar (obrigatório se não rodar dentro do repo)
 - `--branch <branch>`: branch a usar (padrao: main)
 - `--dry-run`: apenas mostra os comandos
 - `--no-aur`: ignora pacotes AUR
