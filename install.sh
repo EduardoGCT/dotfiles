@@ -58,6 +58,12 @@ if [[ $EUID -ne 0 ]]; then
   SUDO="sudo"
 fi
 
+TARGET_USER="${SUDO_USER:-$USER}"
+TARGET_HOME=$(getent passwd "$TARGET_USER" | cut -d: -f6)
+if [[ -z "$TARGET_HOME" ]]; then
+  TARGET_HOME="$HOME"
+fi
+
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
     die "Missing command: $1"
@@ -74,7 +80,10 @@ prepare_repo() {
     die "Repo not found. Run from repo or pass --repo <git_url>"
   fi
 
-  require_cmd git
+  if ! command -v git >/dev/null 2>&1; then
+    log "git is missing; installing via pacman"
+    run $SUDO pacman -Sy --noconfirm git
+  fi
   local tmpdir
   tmpdir=$(mktemp -d)
   log "Cloning repo to $tmpdir"
@@ -140,6 +149,10 @@ install_pacman_packages() {
 
   log "Installing pacman packages"
   run $SUDO pacman -Syu --needed --noconfirm "${pkgs[@]}"
+
+  if command -v fc-cache >/dev/null 2>&1; then
+    run $SUDO fc-cache -fv
+  fi
 }
 
 install_aur_packages() {
@@ -149,6 +162,9 @@ install_aur_packages() {
   fi
 
   install_yay
+  if ! command -v yay >/dev/null 2>&1; then
+    die "yay install failed"
+  fi
 
   local pkgs=()
   pkgs+=(awww)
@@ -169,11 +185,12 @@ backup_and_copy() {
     run mv "$dest" "$BACKUP_ROOT/"
     log "Backed up $dest to $BACKUP_ROOT"
   fi
-  run cp -a "$src" "$dest"
+  run mkdir -p "$dest"
+  run cp -a "$src/." "$dest/"
 }
 
 deploy_dotfiles() {
-  BACKUP_ROOT="$HOME/.config-backups/$(date +%Y%m%d-%H%M%S)"
+  BACKUP_ROOT="$TARGET_HOME/.config-backups/$(date +%Y%m%d-%H%M%S)"
   local targets=(
     "hypr"
     "waybar"
@@ -184,31 +201,32 @@ deploy_dotfiles() {
     "qt6ct"
   )
 
-  run mkdir -p "$HOME/.config"
+  log "Deploying configs to $TARGET_HOME/.config"
+  run mkdir -p "$TARGET_HOME/.config"
 
   for dir in "${targets[@]}"; do
     if [[ -d "$REPO_DIR/$dir" ]]; then
-      backup_and_copy "$REPO_DIR/$dir" "$HOME/.config/$dir"
+      backup_and_copy "$REPO_DIR/$dir" "$TARGET_HOME/.config/$dir"
     fi
   done
 
   if [[ -d "$REPO_DIR/Wallpapers" ]]; then
-    backup_and_copy "$REPO_DIR/Wallpapers" "$HOME/Wallpapers"
+    backup_and_copy "$REPO_DIR/Wallpapers" "$TARGET_HOME/Wallpapers"
   fi
 
   if [[ -d "$REPO_DIR/hypr/scripts" ]]; then
-    run mkdir -p "$HOME/.config/hypr/scripts"
-    run cp -a "$REPO_DIR/hypr/scripts/." "$HOME/.config/hypr/scripts/"
+    run mkdir -p "$TARGET_HOME/.config/hypr/scripts"
+    run cp -a "$REPO_DIR/hypr/scripts/." "$TARGET_HOME/.config/hypr/scripts/"
   fi
 
   if [[ -d "$REPO_DIR/system_scripts" ]]; then
-    run mkdir -p "$HOME/.config/system_scripts"
-    run cp -a "$REPO_DIR/system_scripts/." "$HOME/.config/system_scripts/"
+    run mkdir -p "$TARGET_HOME/.config/system_scripts"
+    run cp -a "$REPO_DIR/system_scripts/." "$TARGET_HOME/.config/system_scripts/"
   fi
 
   shopt -s nullglob
-  run chmod +x "$HOME/.config/hypr/scripts"/*.sh
-  run chmod +x "$HOME/.config/system_scripts"/*.py
+  run chmod +x "$TARGET_HOME/.config/hypr/scripts"/*.sh
+  run chmod +x "$TARGET_HOME/.config/system_scripts"/*.py
   shopt -u nullglob
 }
 
@@ -227,6 +245,11 @@ post_install_setup() {
 
   if ! command -v corectrl >/dev/null 2>&1; then
     log "CoreCtrl is not installed; Hyprland autostart may show an error."
+  fi
+
+  if command -v waybar >/dev/null 2>&1; then
+    run pkill waybar || true
+    run waybar >/dev/null 2>&1 &
   fi
 }
 
