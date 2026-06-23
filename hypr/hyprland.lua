@@ -32,14 +32,16 @@ local navegador = "brave"
 -------------------
 
 hl.on("hyprland.start", function()
-    hl.exec_cmd("waybar & hyprpaper")
-    hl.exec_cmd("awww-daemon & sleep 1 && awww img /home/gambs/Wallpapers/treem.jpg")
+    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=Hyprland")
+    hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
+    hl.exec_cmd("waybar &")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
     hl.exec_cmd("kbuildsycoca6")
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
     hl.exec_cmd("org.corectrl.CoreCtrl --minimize-systray")
     hl.exec_cmd("mako")
+    hl.exec_cmd("waypaper --restore")
 end)
 
 -------------------------------
@@ -81,8 +83,8 @@ hl.config({
     decoration = {
         rounding = 10,
         rounding_power = 2,
-        active_opacity = 1.0,
-        inactive_opacity = 0.85,
+        active_opacity = 0.87,
+        inactive_opacity = 0.80,
         shadow = {
             enabled = true,
             range = 20,
@@ -90,8 +92,8 @@ hl.config({
             color = "rgba(00000079)",
         },
         blur = {
-            enabled = false,
-            size = 5,
+            enabled = true,
+            size = 4,
             passes = 1,
             vibrancy = 0.1696,
             new_optimizations = true,
@@ -125,8 +127,8 @@ hl.animation({ leaf = "fade",          enabled = true, speed = 3.03, bezier = "q
 hl.animation({ leaf = "layers",        enabled = true, speed = 3.81, bezier = "easeOutQuint" })
 hl.animation({ leaf = "layersIn",      enabled = true, speed = 4,    bezier = "easeOutQuint", style = "fade" })
 hl.animation({ leaf = "layersOut",     enabled = true, speed = 1.5,  bezier = "linear", style = "fade" })
-hl.animation({ leaf = "fadeLayersIn",  enabled = true, speed = 2.79, bezier = "almostLinear" })
 hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 2.39, bezier = "almostLinear" })
+hl.animation({ leaf = "fadeLayersIn",  enabled = true, speed = 2.79, bezier = "almostLinear" })
 hl.animation({ leaf = "workspaces",    enabled = true, speed = 4.94, bezier = "overshot", style = "slidevert" })
 hl.animation({ leaf = "workspacesIn",  enabled = true, speed = 2.21, bezier = "almostLinear", style = "slide" })
 hl.animation({ leaf = "workspacesOut", enabled = true, speed = 2.94, bezier = "almostLinear", style = "slide" })
@@ -200,16 +202,63 @@ hl.bind(mainMod .. " + SHIFT + SPACE", hl.dsp.window.fullscreen({ mode = "fullsc
 hl.bind(mainMod .. " + SPACE", hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }))
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy"))
 hl.bind("Print", hl.dsp.exec_cmd("hyprshot -zm region"))
+hl.bind(mainMod .. "+ W", hl.dsp.exec_cmd("waypaper --random"))
 
+-- Variável para guardar o zoom atual (padrão é 1.0)
+local _zoom = 1.0
+
+local function set_zoom(delta)
+    return function()
+        -- Garante que o zoom nunca fique menor que 1.0
+        _zoom = math.max(1.0, _zoom + delta)
+        hl.config({
+            cursor = {
+                zoom_factor = _zoom
+            }
+        })
+    end
+end
+
+-- Zoom In RÁPIDO (Aumenta de 0.5 em 0.5)
+hl.bind(mainMod .. " + equal", set_zoom(0.5), { repeating = true })
+
+-- Zoom Out RÁPIDO (Diminui de 0.5 em 0.5)
+hl.bind(mainMod .. " + minus", set_zoom(-0.5), { repeating = true })
+
+-- RETIRAR O ZOOM IMEDIATAMENTE (Reseta para 1.0 usando a tecla 0)
+hl.bind(mainMod .. "+ ALT + 0", function()
+    _zoom = 1.0
+    hl.config({
+        cursor = {
+            zoom_factor = 1.0
+        }
+    })
+end)
+
+--move focus with arrows
 hl.bind(mainMod .. " + left", hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + up", hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + down", hl.dsp.focus({ direction = "down" }))
 
+--move window with arrows 
 hl.bind(mainMod .. " + ALT + right", hl.dsp.window.move({ direction = "right" }))
 hl.bind(mainMod .. " + ALT + left", hl.dsp.window.move({ direction = "left" }))
 hl.bind(mainMod .. " + ALT + up", hl.dsp.window.move({ direction = "up" }))
 hl.bind(mainMod .. " + ALT + down", hl.dsp.window.move({ direction = "down" }))
+
+--swap window with arrows
+hl.bind(mainMod .. " + CTRL + right", hl.dsp.window.swap({ direction = "right" }))
+hl.bind(mainMod .. " + CTRL + left", hl.dsp.window.swap({ direction = "left" }))
+hl.bind(mainMod .. " + CTRL + up", hl.dsp.window.swap({ direction = "up" }))
+hl.bind(mainMod .. " + CTRL + down", hl.dsp.window.swap({ direction = "down" }))
+
+--resize windows witdh arrows
+hl.bind(mainMod .. " + SHIFT + right", hl.dsp.window.resize({ x=30, y=0, relative=true }), {repeating=true})
+hl.bind(mainMod .. " + SHIFT + left", hl.dsp.window.resize({ x=-30, y=0, relative=true }), {repeating=true})
+hl.bind(mainMod .. " + SHIFT + up", hl.dsp.window.resize({ x=0, y=-30, relative=true }), {repeating=true})
+hl.bind(mainMod .. " + SHIFT + down", hl.dsp.window.resize({ x=0, y=30, relative=true }), {repeating=true})
+
 
 for i = 1, 10 do
     local key = i % 10
@@ -287,39 +336,10 @@ hl.window_rule({
 })
 
 hl.window_rule({
-    name = "transparent-vscode",
-    match = { class = "(code)$" },
-    opacity = "0.87",
-})
-
-hl.window_rule({
-    name = "transparent-spotify",
-    match = { class = "(Spotify)$" },
-    opacity = "0.87",
-})
-
-hl.window_rule({
-    name = "transparent-dolphin",
-    match = { class = "(org.kde.dolphin)$" },
-    opacity = "0.87",
-})
-
-hl.window_rule({
     name = "transparent-volume",
     match = { class = "(org.pulseaudio.pavucontrol)$" },
     opacity = "0.87",
     float = 1,
     size = "800 600",
-})
-
-hl.window_rule({
-    name = "transparent-Notebook",
-    match = { class = "(Notebook)$" },
-    opacity = "0.87",
-})
-
-hl.window_rule({
-    name = "transparent-Browser",
-    match = { class = "(brave-browser)$" },
-    opacity = "0.87",
+    workspace = "current",
 })
